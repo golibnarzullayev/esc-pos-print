@@ -1,0 +1,13 @@
+{
+  "name": "escpos-no-lib-printer",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsc && node dist/index.js",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "typescript": "^5.3.3"
+  }
+}
