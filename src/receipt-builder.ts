@@ -1,9 +1,9 @@
-import { exec } from "node:child_process";
-import { writeFileSync, unlinkSync } from "node:fs";
+import { exec, spawn } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 
 import { generateReceipt } from "./generate-reciept";
-import { ReceiptLine } from "./types";
+import { RecieplineType, ReceiptLine } from "./types";
 
 export class EscPosPrinter {
   private lines: ReceiptLine[] = [];
@@ -14,76 +14,77 @@ export class EscPosPrinter {
   }
 
   title(value: string) {
-    this.lines.push({ type: "center", value });
+    this.lines.push({ type: RecieplineType.CENTER, value });
     return this;
   }
 
   line(value: string) {
-    this.lines.push({ type: "text", value });
+    this.lines.push({ type: RecieplineType.Text, value });
     return this;
   }
 
   bold(value: string) {
-    this.lines.push({ type: "bold", value });
+    this.lines.push({ type: RecieplineType.Bold, value });
     return this;
   }
 
-  center(value: string) {
-    this.lines.push({ type: "center", value });
-    return this;
-  }
-
-  right(value: string) {
-    this.lines.push({ type: "right", value });
+  align(
+    alignment: RecieplineType.CENTER | RecieplineType.RIGHT,
+    value: string
+  ) {
+    this.lines.push({ type: alignment, value });
     return this;
   }
 
   hr() {
-    this.lines.push({ type: "hr" });
+    this.lines.push({ type: RecieplineType.HR });
     return this;
   }
 
   feed(lines = 1) {
-    this.lines.push({ type: "feed", lines });
+    this.lines.push({ type: RecieplineType.Feed, lines });
     return this;
   }
 
   cut() {
-    this.lines.push({ type: "cut" });
+    this.lines.push({ type: RecieplineType.Cut });
     return this;
   }
 
   qr(value: string) {
-    this.lines.push({ type: "qr", value });
+    this.lines.push({ type: RecieplineType.QR, value });
     return this;
   }
 
   columns(left: string, right: string) {
-    this.lines.push({ type: "columns", left, right });
+    this.lines.push({ type: RecieplineType.Columns, left, right });
     return this;
   }
 
-  build(): Buffer {
+  build(): Buffer | string {
     return generateReceipt({ lines: this.lines });
   }
 
   print(): Promise<void> {
     const buffer = this.build();
-    const tmpPath = path.join(process.cwd(), `receipt_${Date.now()}.raw`);
-    writeFileSync(tmpPath, buffer);
+
+    const tmpPath = path.join(
+      `${process.cwd()}/public/receipts`,
+      `receipt_${Date.now()}.raw`
+    );
+
+    if (!fs.existsSync(`${process.cwd()}/public/receipts`)) {
+      fs.mkdirSync(`${process.cwd()}/public/receipts`, { recursive: true });
+    }
+
+    fs.writeFileSync(tmpPath, buffer);
 
     const cmd = `lp ${
       this.printerName ? `-d ${this.printerName}` : ""
     } -o raw "${tmpPath}"`;
 
     return new Promise((resolve, reject) => {
-      exec(cmd, (err, stdout, stderr) => {
-        try {
-          unlinkSync(tmpPath);
-        } catch (e) {
-          throw e;
-        }
-
+      exec(cmd, (err) => {
         if (err) {
           return reject(err);
         }

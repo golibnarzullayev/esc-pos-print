@@ -1,13 +1,30 @@
+export enum RecieplineType {
+  LEFT = "left",
+  CENTER = "center",
+  RIGHT = "right",
+  Text = "text",
+  Bold = "bold",
+  HR = "hr",
+  Feed = "feed",
+  Cut = "cut",
+  QR = "qr",
+  Columns = "columns",
+}
+
 export type ReceiptLine =
-  | { type: "text"; value: string }
-  | { type: "bold"; value: string }
-  | { type: "center"; value: string }
-  | { type: "right"; value: string }
-  | { type: "hr" }
-  | { type: "feed"; lines?: number }
-  | { type: "cut" }
-  | { type: "qr"; value: string }
-  | { type: "columns"; left: string; right: string };
+  | { type: RecieplineType.CENTER; value: string }
+  | { type: RecieplineType.RIGHT; value: string }
+  | { type: RecieplineType.Text; value: string }
+  | { type: RecieplineType.Bold; value: string }
+  | { type: RecieplineType.HR }
+  | { type: RecieplineType.Feed; lines?: number }
+  | { type: RecieplineType.Cut }
+  | { type: RecieplineType.QR; value: string }
+  | {
+      type: RecieplineType.Columns;
+      [RecieplineType.LEFT]: string;
+      [RecieplineType.RIGHT]: string;
+    };
 
 export interface ReceiptConfig {
   title?: string;
